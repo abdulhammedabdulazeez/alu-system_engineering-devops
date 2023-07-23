@@ -1,0 +1,6 @@
+Include /etc/ssh/ssh_config.d/*.conf
+
+Host *
+        PasswordAuthentication no
+        ServerAliveInterval 120
+        IdentityFile ~/.ssh/school
