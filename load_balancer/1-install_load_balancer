@@ -27,7 +27,7 @@ backend webservers
 EOT
 
 # Update the hostname
-sudo hostnamectl set-hostname 53580825-haproxy
+sudo hostnamectl set-hostname 389072452-haproxy
 
 # Enable HAProxy as a service managed by the init script
 sudo service haproxy enable 
