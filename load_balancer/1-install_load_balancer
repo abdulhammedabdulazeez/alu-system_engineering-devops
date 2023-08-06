@@ -1,79 +1,36 @@
-#!/bin/bash
-# Create a script to install and configure HAProxy on lb-01 server
-# Configure HAProxy to send traffic to web-01 and web-02 servers
-# Distribute requests using a roundrobin algorithm
-# Make sure that HAProxy can be managed via an init script
-# Install and configure HAproxy on my lb-01 server.
+#!/usr/bin/env bash
+#Install and configure HAproxy
 
-# Function to install HAproxy
-install_haproxy() {
-    sudo apt update
-    sudo apt install -y haproxy
-}
+apt-get update
+apt-get install -y haproxy
 
-# Function to configure HAproxy
-configure_haproxy() {
-    sudo cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.bak
-
-    # Create a new HAproxy configuration file
-    sudo tee /etc/haproxy/haproxy.cfg > /dev/null <<EOF
+sudo mv /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.bak
+sudo tee /etc/haproxy/haproxy.cfg > /dev/null <<EOT
 global
-    log /dev/log local0
-    log /dev/log local1 notice
-    user haproxy
-    group haproxy
     daemon
+    maxconn 256
 
 defaults
-    log global
     mode http
-    option httplog
-    option dontlognull
-    retries 3
-    option redispatch
-    timeout connect 5000
-    timeout client 50000
-    timeout server 50000
+    timeout connect 5000ms
+    timeout client 50000ms
+    timeout server 50000ms
 
 frontend http-in
     bind *:80
-    default_backend servers
+    default_backend webservers
 
-backend servers
+backend webservers
     balance roundrobin
-    server web-01 5640-web-01 54.226.155.91:80 check
-    server web-02 5640-web-02 3.80.46.1:80 check
-EOF
+    server web-01 54.226.155.91:80 check
+    server web-02 3.80.46.1:80 check
+EOT
 
-    # Enable HAproxy as a service and start it
-    sudo systemctl enable haproxy
-    sudo systemctl start haproxy
-}
+# Update the hostname
+sudo hostnamectl set-hostname  389072452-haproxy
 
-# Function to configure hostnames
-configure_hostnames() {
-    # Replace [STUDENT_ID] with your actual student ID
-    student_id="5640"
+# Enable HAProxy as a service managed by the init script
+sudo service haproxy enable 
 
-    # Set the hostnames for web-01 and web-02
-    sudo hostnamectl set-hostname "${student_id}-web-01"
-    sudo hostnamectl set-hostname "${student_id}-web-02"
-}
-
-# Main function
-main() {
-    # Install HAproxy
-    install_haproxy
-
-    # Configure HAproxy
-    configure_haproxy
-
-    # Configure hostnames
-    configure_hostnames
-
-    echo "HAproxy installation and configuration completed successfully."
-}
-
-# Execute the main function
-main
-
+# Restart HAProxy service
+sudo service haproxy restart
